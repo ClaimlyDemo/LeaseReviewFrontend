@@ -45,6 +45,7 @@ type LeaseAnalysisViewProps = {
 };
 
 const SUPPORTED_EXTENSIONS = [".pdf", ".docx"] as const;
+const PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_LEASE_REVIEW_API_URL?.trim().replace(/\/+$/, "") || "";
 
 export function LeaseAnalysisView({
   initialDocumentTitle = "",
@@ -111,17 +112,22 @@ export function LeaseAnalysisView({
     setErrorMessage(null);
     setAnalysis(null);
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    if (documentTitle.trim()) {
-      formData.append("documentTitle", documentTitle.trim());
-    }
-
     try {
-      const response = await fetch("/api/lease-analysis", {
-        method: "POST",
-        body: formData,
-      });
+      const response = PUBLIC_BACKEND_URL
+        ? await fetch(
+            `${PUBLIC_BACKEND_URL}/analyze/upload?filename=${encodeURIComponent(selectedFile.name)}`,
+            {
+              method: "POST",
+              headers: {
+                "content-type": selectedFile.type || "application/octet-stream",
+              },
+              body: selectedFile,
+            },
+          )
+        : await fetch("/api/lease-analysis", {
+            method: "POST",
+            body: buildProxyFormData(selectedFile, documentTitle),
+          });
 
       const payload = (await response.json().catch(() => null)) as
         | LeaseAnalysisResponse
@@ -320,9 +326,10 @@ export function LeaseAnalysisView({
               </button>
             </div>
 
-            <p className="mt-4 text-xs leading-relaxed text-gray-500">
+          <p className="mt-4 text-xs leading-relaxed text-gray-500">
               This flow expects the backend API to be running and its reference leases to already be
-              ingested. The frontend proxies requests to the backend from the server.
+              ingested. Hosted builds send the upload straight to the backend to avoid server-side
+              proxy time limits.
             </p>
           </form>
 
@@ -797,6 +804,15 @@ function hasSupportedExtension(fileName: string) {
 
 function stripExtension(fileName: string) {
   return fileName.replace(/\.[^.]+$/, "");
+}
+
+function buildProxyFormData(file: File, documentTitle: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (documentTitle.trim()) {
+    formData.append("documentTitle", documentTitle.trim());
+  }
+  return formData;
 }
 
 function formatFileSize(size: number) {

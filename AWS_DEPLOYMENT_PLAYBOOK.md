@@ -456,42 +456,44 @@ If you do not:
 3. Open the logs.
 4. Read the startup error.
 
-## Phase 11: Add `amplify.yml` At The Repo Root
+## Phase 11: Add `amplify.yml` Inside `ClaimlyFrontend`
 
 Create this file:
 
-- `C:\Users\Kevin\Documents\ClaimlyDemo\amplify.yml`
+- `C:\Users\Kevin\Documents\ClaimlyDemo\ClaimlyFrontend\amplify.yml`
 
 Use:
 
 ```yaml
 version: 1
-applications:
-  - appRoot: ClaimlyFrontend
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            - npm ci
-        build:
-          commands:
-            - env | grep -e LEASE_REVIEW_API_URL >> .env.production
-            - npm run build
-      artifacts:
-        baseDirectory: .next
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
-          - .next/cache/**/*
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - env | grep -e LEASE_REVIEW_API_URL >> .env.production
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
 ```
 
 ## Phase 12: Deploy The Frontend In Amplify
 
 ### Before starting
 
-If the root-level `package-lock.json` is accidental, remove it before connecting the repo to Amplify. Your local build warned about multiple lockfiles.
+You are connecting `ClaimlyFrontend` itself as the repo, so make sure:
+
+- `amplify.yml` is inside `ClaimlyFrontend`
+- `package-lock.json` is inside `ClaimlyFrontend`
+- you do not need any monorepo settings
 
 ### Create the Amplify app
 
@@ -502,14 +504,8 @@ If the root-level `package-lock.json` is accidental, remove it before connecting
 5. Connect your Git provider.
 6. Select the repository.
 7. Select the branch.
-8. Check **My app is a monorepo**.
-9. Set the app root to:
-
-```text
-ClaimlyFrontend
-```
-
-10. Click **Next**.
+8. Do not check **My app is a monorepo**.
+9. Click **Next**.
 
 ### Add the backend URL
 
@@ -521,7 +517,7 @@ On the Amplify setup screen, add this environment variable:
 ### Finish
 
 1. Review the build settings.
-2. Make sure Amplify is using the monorepo app root `ClaimlyFrontend`.
+2. Make sure Amplify detected the build from the `amplify.yml` file in the repo.
 3. Click **Save and deploy**.
 4. Wait for the build to finish.
 

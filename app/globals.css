@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: Garamond, "EB Garamond", ui-serif, Georgia, serif;
+}
+
+body {
+  @apply text-stone-900 antialiased;
+}
+
+.font-heading {
+  font-family: var(--font-lora), ui-serif, Georgia, serif;
+}

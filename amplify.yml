@@ -6,7 +6,7 @@ frontend:
         - npm ci
     build:
       commands:
-        - env | grep -e LEASE_REVIEW_API_URL >> .env.production
+        - env | grep -e NEXT_PUBLIC_LEASE_REVIEW_API_URL >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
